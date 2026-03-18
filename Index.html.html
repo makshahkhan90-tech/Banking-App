@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shah Khan's Limited Bank</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body{
+margin:0;
+font-family:Segoe UI;
+background:#f2f3f7;
+}
+
+.screen{
+display:none;
+padding:20px;
+max-width:420px;
+margin:auto;
+}
+
+.active{
+display:block;
+}
+
+h1,h2,h3{
+color:#1E3A8A;
+}
+
+input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:13px;
+margin:10px 0;
+border:none;
+border-radius:12px;
+background:#1E3A8A;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+button:hover{
+background:#162f6c;
+}
+
+.red{
+background:#d32f2f;
+}
+
+.card{
+background:#1E3A8A;
+color:white;
+padding:20px;
+border-radius:15px;
+margin-bottom:20px;
+}
+
+.card h3{color:white;margin:0 0 5px 0;}
+.balance{
+color:white;
+font-size:28px;
+}
+
+ul{
+list-style:none;
+padding:0;
+}
+
+li{
+background:white;
+padding:12px;
+margin-bottom:10px;
+border-radius:10px;
+display:flex;
+justify-content:space-between;
+}
+
+.success{
+text-align:center;
+color:green;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loginScreen" class="screen active">
+<h1><i class="fa-solid fa-building-columns"></i> Shah Khan's Limited Bank</h1>
+<input type="text" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg" class="success"></p>
+</div>
+
+<div id="dashboardScreen" class="screen">
+<h2 id="welcomeName">Welcome, Shah Khan Aslam</h2>
+
+<div class="card">
+<h3>Account Balance</h3>
+<h2 class="balance" id="balance">$5000</h2>
+</div>
+
+<button onclick="showScreen('transferScreen')">
+<i class="fa-solid fa-paper-plane"></i> Transfer Money
+</button>
+
+<button onclick="showScreen('historyScreen')">
+<i class="fa-solid fa-clock"></i> Transactions
+</button>
+
+<button onclick="showScreen('profileScreen')">
+<i class="fa-solid fa-user"></i> Profile
+</button>
+
+<h3>Recent Transactions</h3>
+
+<ul id="transactionList"></ul>
+</div>
+
+<div id="transferScreen" class="screen">
+<h2>Send Money</h2>
+<input type="text" id="recipient" placeholder="Recipient">
+<input type="number" id="amount" placeholder="Amount">
+<button onclick="sendMoney()">Send</button>
+<button onclick="showScreen('dashboardScreen')">Back</button>
+</div>
+
+<div id="historyScreen" class="screen">
+<h2>Transaction History</h2>
+<ul id="historyList"></ul>
+<button onclick="showScreen('dashboardScreen')">Back</button>
+</div>
+
+<div id="profileScreen" class="screen">
+<h2>Profile</h2>
+<p><b>Name:</b> <span id="pName">Shah Khan Aslam</span></p>
+<p><b>Email:</b> <span id="pEmail">makshahkhan90@gmail.com</span></p>
+<p><b>Contact:</b> <span id="pPhone">+923014273496</span></p>
+
+<button onclick="showScreen('editProfileScreen')">Edit Profile</button>
+<button class="red" onclick="logout()">Logout</button>
+<button onclick="showScreen('dashboardScreen')">Back</button>
+</div>
+
+<div id="editProfileScreen" class="screen">
+<h2>Edit Profile</h2>
+<input id="newName" placeholder="Enter Name">
+<input id="newEmail" placeholder="Enter Email">
+<input id="newPhone" placeholder="Enter Phone">
+<button onclick="saveProfile()">Save</button>
+<button onclick="showScreen('profileScreen')">Cancel</button>
+</div>
+
+<script>
+
+function showScreen(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'))
+document.getElementById(id).classList.add('active')
+}
+
+function login(){
+let email=document.getElementById("email").value
+let pass=document.getElementById("password").value
+
+if(email==="makshahkhan90@gmail.com" && pass==="123hello"){
+document.getElementById("loginMsg").innerText="Login Successful ✓"
+setTimeout(()=>{ showScreen('dashboardScreen') },1000)
+}else{
+alert("Invalid Email or Password")
+}
+}
+
+function logout(){
+showScreen('loginScreen')
+}
+
+// LOAD DATA WHEN PAGE OPENS
+window.onload = function(){
+
+let transactions = JSON.parse(localStorage.getItem("transactions"))
+let balance = localStorage.getItem("balance")
+
+if(!transactions){
+transactions = [
+{name:"Electric Bill",amount:50},
+{name:"Salary Received",amount:200},
+{name:"Sent to Ali",amount:100}
+]
+localStorage.setItem("transactions",JSON.stringify(transactions))
+}
+
+if(!balance){
+balance = 5000
+localStorage.setItem("balance",balance)
+}
+
+document.getElementById("balance").innerText="$"+balance
+
+transactions.forEach(t=>{
+let li=document.createElement("li")
+li.innerHTML=t.name+" <span>$"+t.amount+"</span>"
+document.getElementById("transactionList").appendChild(li)
+document.getElementById("historyList").appendChild(li.cloneNode(true))
+})
+
+let profile = JSON.parse(localStorage.getItem("profile"))
+if(profile){
+document.getElementById("pName").innerText=profile.name
+document.getElementById("pEmail").innerText=profile.email
+document.getElementById("pPhone").innerText=profile.phone
+document.getElementById("welcomeName").innerText="Welcome, "+profile.name
+}
+
+}
+
+function sendMoney(){
+
+let rec=document.getElementById("recipient").value
+let amt=parseFloat(document.getElementById("amount").value)
+
+if(rec=="" || !amt){
+alert("Enter recipient and amount")
+return
+}
+
+let balance = parseFloat(localStorage.getItem("balance"))
+
+if(amt>balance){
+alert("Insufficient Balance")
+return
+}
+
+balance -= amt
+localStorage.setItem("balance",balance)
+document.getElementById("balance").innerText="$"+balance
+
+let li=document.createElement("li")
+li.innerHTML=rec+" <span>$"+amt+"</span>"
+
+document.getElementById("transactionList").prepend(li)
+document.getElementById("historyList").prepend(li.cloneNode(true))
+
+let transactions = JSON.parse(localStorage.getItem("transactions"))
+transactions.unshift({name:rec,amount:amt})
+
+localStorage.setItem("transactions",JSON.stringify(transactions))
+
+alert("Money Sent Successfully")
+showScreen("dashboardScreen")
+}
+
+function saveProfile(){
+
+let name=document.getElementById("newName").value
+let email=document.getElementById("newEmail").value
+let phone=document.getElementById("newPhone").value
+
+let profile = {
+name: name || document.getElementById("pName").innerText,
+email: email || document.getElementById("pEmail").innerText,
+phone: phone || document.getElementById("pPhone").innerText
+}
+
+localStorage.setItem("profile",JSON.stringify(profile))
+
+document.getElementById("pName").innerText=profile.name
+document.getElementById("pEmail").innerText=profile.email
+document.getElementById("pPhone").innerText=profile.phone
+document.getElementById("welcomeName").innerText="Welcome, "+profile.name
+
+alert("Profile Updated")
+showScreen("profileScreen")
+}
+
+</script>
+
+</body>
+</html>
